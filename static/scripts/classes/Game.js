@@ -21,28 +21,23 @@ class Game {
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
         this.controls.target.set(0, 0, 0)
 
-        this.mouseDown = 0
-        document.getElementById("root").onmousedown = () => { this.mouseDown = 1 }
-        document.getElementById("root").onmouseup = () => { this.mouseDown = 0 }
 
         this.raycasting()
 
         this.createMineField()
+
         this.render()
         this.resize()
-        const axes = new THREE.AxesHelper(1000)
-        axes.setColors(0xFF0000, 0x00FF00, 0x00FF00)
-        this.scene.add(axes)
 
-        this.oncontextmenu = {}
+        // const axes = new THREE.AxesHelper(1000)
+        // axes.setColors(0xFF0000, 0x00FF00, 0x00FFFF)
+        // this.scene.add(axes)
     }
 
     render = () => {
         requestAnimationFrame(this.render)
         this.controls.update()
-        this.oncontextmenu = {}
         this.renderer.render(this.scene, this.camera)
-
         // console.log("render leci")
     }
 
@@ -52,7 +47,24 @@ class Game {
         this.renderer.setSize(window.innerWidth, window.innerHeight)
     }
 
+    raycasting = () => {
+        this.raycaster = new THREE.Raycaster() // obiekt Raycastera symulujący "rzucanie" promieni
+        this.mouseVector = new THREE.Vector2() // ten wektor czyli pozycja w przestrzeni 2D na ekranie(x,y) wykorzystany będzie do określenie pozycji myszy na ekranie, a potem przeliczenia na 
+        document.onmousedown = (event) => {
+            this.mouseVector.x = (event.clientX / window.innerWidth) * 2 - 1
+            this.mouseVector.y = -(event.clientY / window.innerHeight) * 2 + 1
+            // console.log("DZIAŁA")
+            this.cubeSelect()
+        }
+    }
 
+    cubeSelect = () => {
+        this.raycaster.setFromCamera(this.mouseVector, this.camera)
+        this.intersects = this.raycaster.intersectObjects(this.scene.children)
+        if (this.intersects.length > 0) {
+            console.log(this.intersects[0].object)
+        }
+    }
 
     createMineField = () => {
 
@@ -69,7 +81,6 @@ class Game {
             }
             this.mineFieldArray.push(mineFieldArrayRow1)
         }
-
 
         this.addMines()
     }
@@ -123,24 +134,7 @@ class Game {
         return neighboringMines
     }
 
-    // cameraPosition = (player) => {
-    //     this.player = player
-    //     if (this.player == 2) {
-    //         this.camera.position.set(0, 100, -300)
-    //         this.camera.lookAt(this.scene.position)
-    //         this.camera.position.set(180, 200, -240)
-    //     }
-    // }
 
-    raycasting = () => {
-        this.raycaster = new THREE.Raycaster() // obiekt Raycastera symulujący "rzucanie" promieni
-        this.mouseVector = new THREE.Vector2() // ten wektor czyli pozycja w przestrzeni 2D na ekranie(x,y) wykorzystany będzie do określenie pozycji myszy na ekranie, a potem przeliczenia na pozycje 3D
-        document.onmousemove = (event) => {
-            this.mouseVector.x = (event.clientX / window.innerWidth) * 2 - 1
-            this.mouseVector.y = -(event.clientY / window.innerHeight) * 2 + 1
-            // console.log(this.mouseVector.y)
-        }
-    }
 
 
 }
