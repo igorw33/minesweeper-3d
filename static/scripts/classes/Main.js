@@ -1,4 +1,8 @@
-
+let game
 const loadWholeGame = () => {
-    console.log("XD")
+    game = new Game()
+}
+
+window.onresize = () => {
+    game.resize()
 }
