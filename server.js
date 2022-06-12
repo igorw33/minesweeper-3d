@@ -15,6 +15,7 @@ app.use(express.static('static'))
 let users = []
 let lastChange = {}
 let newMove = {}
+let newMove2 = {}
 let startDate = Date.now()
 const collection = new Datastore({
     filename: 'kolekcja.db',
@@ -29,7 +30,8 @@ app.get("/", (req, res) => {
 // Po udanym zalogowaniu na kliencie wyślij POST /CHECK_USERS
 
 app.post("/ADD_USER", (req, res) => {
-    let userInfo = req.body
+    let userInfo = JSON.parse(req.body)
+    console.log(userInfo)
     if (users.length >= 2) {
         console.log("nie można dodać - za dużo userów")
         res.send(JSON.stringify("error - nie można dodać, za dużo userów", null, 5))
@@ -38,7 +40,7 @@ app.post("/ADD_USER", (req, res) => {
         if (users.length == 0) {
             users.push(userInfo.userName)
             console.log(users)
-            res.send(JSON.stringify(users, null, 5));
+            res.send(JSON.stringify({ users }, null, 5));
         }
         else if (users.length == 1) {
             if (users[0] == userInfo.userName) {
@@ -48,7 +50,7 @@ app.post("/ADD_USER", (req, res) => {
             else {
                 users.push(userInfo.userName)
                 console.log(users)
-                res.send(JSON.stringify(users, null, 5));
+                res.send(JSON.stringify({ users }, null, 5));
             }
         }
     }
@@ -73,7 +75,9 @@ app.post("/CHECK_USERS", (req, res) => {
 // Otrzymanie nowego ruchu
 
 app.post("/NEW_MOVE", (req, res) => {
-    newMove = req.body
+    newMove = JSON.parse(req.body)
+    newMove2 = JSON.parse(req.body)
+    console.log((Date.now() - startDate) / 1000)
     res.send(JSON.stringify(newMove))
 })
 
@@ -81,18 +85,22 @@ app.post("/NEW_MOVE", (req, res) => {
 
 app.post("/MOVE_CHECK", (req, res) => {
     if (JSON.stringify(newMove) != JSON.stringify(lastChange)) {
-        lastChange = newMove
+        newMove = lastChange
+        res.send(JSON.stringify(newMove2))
+    } else if (JSON.stringify(newMove2) != JSON.stringify(lastChange)) {
+        lastChange = newMove2
+        newMove = newMove2
+        console.log(lastChange)
         res.send(JSON.stringify(lastChange))
     } else {
-        res.send(null)
+        res.send(JSON.stringify("Nothing new"))
     }
 })
 
 // Wygrana
 
 app.post("/VICTORY", (req, res) => {
-    let info = req.body
-    let nick = info.nick
+    let nick = users[0] + " & " + users[1]
     let time = (Date.now() - startDate) / 1000
     const doc = {
         nick: nick,
