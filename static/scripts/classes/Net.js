@@ -5,7 +5,7 @@ class Net {
     login(username) {
         let body = {
             userName: username,
-            // minefield: game.mineFieldArray
+            minefield: game.mineFieldArrayHelper
         }
         body = JSON.stringify(body)
         fetch("/ADD_USER", { method: "post", body })
@@ -14,6 +14,9 @@ class Net {
                 if (data.users != undefined) {
                     // ui.createLoadScr()
                     console.log(data)
+                    if (data.which == 2) {
+                        // Tu wywołaj funkcję, która wygeneruje planszę dla drugiego użytkownika
+                    }
                     var sprawdzanie = setInterval(function () {
                         fetch("/CHECK_USERS", { method: "post" })
                             .then(response => response.json())
