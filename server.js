@@ -1,4 +1,5 @@
-const { application } = require("express");
+const { application } = require("express")
+const Datastore = require('nedb')
 var express = require("express")
 var app = express()
 var path = require("path")
@@ -14,6 +15,13 @@ app.use(express.static('static'))
 let users = []
 let lastChange = {}
 let newMove = {}
+let newMove2 = {}
+let startDate = Date.now()
+let finalTime = 0
+let collection = new Datastore({
+    filename: 'kolekcja.db',
+    autoload: true
+})
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname + "/static/index.html"))
@@ -23,7 +31,7 @@ app.get("/", (req, res) => {
 // Po udanym zalogowaniu na kliencie wyślij POST /CHECK_USERS
 
 app.post("/ADD_USER", (req, res) => {
-    let userInfo = req.body
+    let userInfo = JSON.parse(req.body)
     if (users.length >= 2) {
         console.log("nie można dodać - za dużo userów")
         res.send(JSON.stringify("error - nie można dodać, za dużo userów", null, 5))
@@ -32,7 +40,7 @@ app.post("/ADD_USER", (req, res) => {
         if (users.length == 0) {
             users.push(userInfo.userName)
             console.log(users)
-            res.send(JSON.stringify(users, null, 5));
+            res.send(JSON.stringify({ users }, null, 5));
         }
         else if (users.length == 1) {
             if (users[0] == userInfo.userName) {
@@ -42,7 +50,7 @@ app.post("/ADD_USER", (req, res) => {
             else {
                 users.push(userInfo.userName)
                 console.log(users)
-                res.send(JSON.stringify(users, null, 5));
+                res.send(JSON.stringify({ users }, null, 5));
             }
         }
     }
@@ -54,6 +62,7 @@ app.post("/CHECK_USERS", (req, res) => {
     console.log("sprawdzam ilość userów...")
     console.log(users)
     if (users.length == 2) {
+        startDate = Date.now()
         // Koniec czekania, początek gry
         res.send(JSON.stringify("Koniec", null, 5))
     }
@@ -63,10 +72,19 @@ app.post("/CHECK_USERS", (req, res) => {
     }
 })
 
+// Reset
+
+app.post("/RESET", (req, res) => {
+    users = []
+    res.send(JSON.stringify("Tablica została wyczyszczona", null, 5));
+})
+
 // Otrzymanie nowego ruchu
 
 app.post("/NEW_MOVE", (req, res) => {
-    newMove = req.body
+    newMove = JSON.parse(req.body)
+    newMove2 = JSON.parse(req.body)
+    console.log((Date.now() - startDate) / 1000)
     res.send(JSON.stringify(newMove))
 })
 
@@ -74,11 +92,41 @@ app.post("/NEW_MOVE", (req, res) => {
 
 app.post("/MOVE_CHECK", (req, res) => {
     if (JSON.stringify(newMove) != JSON.stringify(lastChange)) {
-        lastChange = newMove
+        newMove = lastChange
+        res.send(JSON.stringify(newMove2))
+    } else if (JSON.stringify(newMove2) != JSON.stringify(lastChange)) {
+        lastChange = newMove2
+        newMove = newMove2
+        console.log(lastChange)
         res.send(JSON.stringify(lastChange))
     } else {
-        res.send(null)
+        res.send(JSON.stringify("Nothing new"))
     }
+})
+
+// Wygrana
+
+app.post("/VICTORY", (req, res) => {
+    let nick = users[0] + " & " + users[1]
+    finalTime = (Date.now() - startDate) / 1000
+    const doc = {
+        nick: nick,
+        time: finalTime
+    }
+    collection.insert(doc, function (err, newDoc) {
+        console.log("dodano dokument (obiekt):")
+        console.log(newDoc)
+        res.send(JSON.stringify(newDoc, null, 5))
+    })
+})
+
+// Zczytanie bazy rekordów
+
+app.post("/READ_RECORDS", (req, res) => {
+    collection.find({}, function (err, docs) {
+        console.log(docs)
+        res.send(JSON.stringify({ "docsy": docs }, null, 5))
+    })
 })
 
 app.listen(PORT, function () {
