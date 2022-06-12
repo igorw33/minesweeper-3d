@@ -18,6 +18,7 @@ let newMove = {}
 let newMove2 = {}
 let startDate = Date.now()
 let finalTime = 0
+let victoryNum = 0
 let collection = new Datastore({
     filename: 'kolekcja.db',
     autoload: true
@@ -79,6 +80,7 @@ app.post("/CHECK_USERS", (req, res) => {
 app.post("/RESET", (req, res) => {
     users = []
     singleArray = []
+    victoryNum = 0
     res.send(JSON.stringify("Tablica została wyczyszczona", null, 5));
 })
 
@@ -115,17 +117,22 @@ app.post("/MOVE_CHECK", (req, res) => {
 // Wygrana
 
 app.post("/VICTORY", (req, res) => {
-    let nick = users[0] + " & " + users[1]
-    finalTime = (Date.now() - startDate) / 1000
-    const doc = {
-        nick: nick,
-        time: finalTime
+    if (victoryNum == 0) {
+        victoryNum = 1
+        let nick = users[0] + " & " + users[1]
+        finalTime = (Date.now() - startDate) / 1000
+        const doc = {
+            nick: nick,
+            time: finalTime
+        }
+        collection.insert(doc, function (err, newDoc) {
+            console.log("dodano dokument (obiekt):")
+            console.log(newDoc)
+            res.send(JSON.stringify(newDoc, null, 5))
+        })
+    } else {
+        res.send(JSON.stringify("foo", null, 5))
     }
-    collection.insert(doc, function (err, newDoc) {
-        console.log("dodano dokument (obiekt):")
-        console.log(newDoc)
-        res.send(JSON.stringify(newDoc, null, 5))
-    })
 })
 
 // Zczytanie bazy rekordów
