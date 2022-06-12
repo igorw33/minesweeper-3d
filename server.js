@@ -17,7 +17,8 @@ let lastChange = {}
 let newMove = {}
 let newMove2 = {}
 let startDate = Date.now()
-const collection = new Datastore({
+let finalTime = 0
+let collection = new Datastore({
     filename: 'kolekcja.db',
     autoload: true
 })
@@ -31,7 +32,6 @@ app.get("/", (req, res) => {
 
 app.post("/ADD_USER", (req, res) => {
     let userInfo = JSON.parse(req.body)
-    console.log(userInfo)
     if (users.length >= 2) {
         console.log("nie można dodać - za dużo userów")
         res.send(JSON.stringify("error - nie można dodać, za dużo userów", null, 5))
@@ -72,6 +72,13 @@ app.post("/CHECK_USERS", (req, res) => {
     }
 })
 
+// Reset
+
+app.post("/RESET", (req, res) => {
+    users = []
+    res.send(JSON.stringify("Tablica została wyczyszczona", null, 5));
+})
+
 // Otrzymanie nowego ruchu
 
 app.post("/NEW_MOVE", (req, res) => {
@@ -101,10 +108,10 @@ app.post("/MOVE_CHECK", (req, res) => {
 
 app.post("/VICTORY", (req, res) => {
     let nick = users[0] + " & " + users[1]
-    let time = (Date.now() - startDate) / 1000
+    finalTime = (Date.now() - startDate) / 1000
     const doc = {
         nick: nick,
-        time: time
+        time: finalTime
     }
     collection.insert(doc, function (err, newDoc) {
         console.log("dodano dokument (obiekt):")
@@ -117,6 +124,7 @@ app.post("/VICTORY", (req, res) => {
 
 app.post("/READ_RECORDS", (req, res) => {
     collection.find({}, function (err, docs) {
+        console.log(docs)
         res.send(JSON.stringify({ "docsy": docs }, null, 5))
     })
 })

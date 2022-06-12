@@ -5,16 +5,14 @@ class Net {
     login(username) {
         let body = {
             userName: username,
-            minefield: game.mineFieldArray
+            // minefield: game.mineFieldArray
         }
         body = JSON.stringify(body)
         fetch("/ADD_USER", { method: "post", body })
             .then(response => response.json())
             .then(data => {
                 if (data.users != undefined) {
-
-                    // Tu wywołaj funkcję która usunie ekran logowania i utworzy ekran ładowania
-
+                    // ui.createLoadScr()
                     console.log(data)
                     var sprawdzanie = setInterval(function () {
                         fetch("/CHECK_USERS", { method: "post" })
@@ -24,7 +22,7 @@ class Net {
                                 if (data == "Koniec") {
                                     clearInterval(sprawdzanie)
                                     net.moveCheck()
-                                    // Tu wywołaj funkcję która usunie ekran ładowania, gra się rozpoczyna
+                                    // ui.removeLoadScr()
                                 }
                             })
                             .catch(error => console.log(error))
@@ -34,6 +32,18 @@ class Net {
                     // Obsługa błędów, np. niepoprawny nick, za dużo graczy
                     alert(data)
                 }
+            })
+            .catch(error => console.log(error))
+    }
+
+    // Reset
+
+    reset() {
+        fetch("/RESET", { method: "post" })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                alert(data)
             })
             .catch(error => console.log(error))
     }
@@ -49,10 +59,10 @@ class Net {
                         console.log(data)
                         if (data.moveInfo == "Victory") {
                             clearInterval(chk)
-                            // Zakończenie gry - zwycięstwo
+                            // ui.writeVictory()
                         } else if (data.moveInfo == "Defeat") {
                             clearInterval(chk)
-                            // Zakończenie gry - porażka
+                            // ui.writeDefeat()
                         } else {
                             // Wywołaj funkcję, która updatuje planszę
                         }
@@ -92,10 +102,7 @@ class Net {
         fetch("/READ_RECORDS", { method: "post" })
             .then(response => response.json())
             .then(data => {
-                console.log(data)
-
-                // Wywołaj funkcję, która gdzieś wyświetla wyniki, w jakimś divie czy w nowej karcie czy gdzie tam chcesz
-
+                // ui.writeRecords(data)
             })
             .catch(error => console.log(error))
     }
