@@ -2,7 +2,7 @@ class Game {
 
     constructor() {
         this.mineFieldLength = 5
-        this.mineCount = 5
+        this.mineCount = 10
         this.mineFieldArray = []
         this.mineFieldArrayHelper = []
         this.mineFieldArrayHelperSingle = []
@@ -11,7 +11,7 @@ class Game {
         this.scene.background = this.backgroundTexture
 
         this.camera = new THREE.PerspectiveCamera(60, 4 / 3, 0.1, 10000)
-        this.camera.position.set(0, 0, 300)
+        this.camera.position.set(0, 0, this.mineFieldLength * 60)
         this.camera.lookAt(this.scene.position)
 
         this.renderer = new THREE.WebGLRenderer()
@@ -26,12 +26,15 @@ class Game {
 
         this.raycasting()
 
+        // przesunąc do innej funkcji
         this.createMineField()
         this.createMineFieldHelper()
 
         this.render()
         this.resize()
 
+        this.loader = new THREE.FBXLoader()
+        this.modelsLoader()
         // const axes = new THREE.AxesHelper(1000)
         // axes.setColors(0xFF0000, 0x00FF00, 0x00FFFF)
         // this.scene.add(axes)
@@ -50,21 +53,49 @@ class Game {
         this.renderer.setSize(window.innerWidth, window.innerHeight)
     }
 
+    modelsLoader = () => {
+        this.modelsArray = []
+
+        this.model = new Promise(() => {
+            this.loader.load("./models/Mine.fbx", (object) => {
+                let mineModel
+                object.scale.set(0.08, 0.08, 0.08)
+                // this.scene.add(object)
+                // console.log(object)
+                mineModel = object
+                this.modelsArray[0] = mineModel
+                // console.log(mineModel, this.modelsArray[0])
+            })
+            for (let i = 0; i <= 26; i++) {
+                this.loader.load(`./models/${i}.fbx`, (object) => {
+                    object.scale.set(0.08, 0.08, 0.08)
+                    let numberModel
+                    numberModel = object
+                    this.modelsArray[i] = numberModel
+                    // console.log(mineModel, this.modelsArray[0])
+                })
+            }
+            console.log(this.modelsArray)
+        })
+    }
+
     raycasting = () => {
         this.raycaster = new THREE.Raycaster() // obiekt Raycastera symulujący "rzucanie" promieni
         this.mouseVector = new THREE.Vector2() // ten wektor czyli pozycja w przestrzeni 2D na ekranie(x,y) wykorzystany będzie do określenie pozycji myszy na ekranie, a potem przeliczenia na 
-        document.onmousedown = (event) => {
+        document.getElementById("root").onclick = (event) => {
             this.mouseVector.x = (event.clientX / window.innerWidth) * 2 - 1
             this.mouseVector.y = -(event.clientY / window.innerHeight) * 2 + 1
             // console.log("DZIAŁA")
+            // this.scene.add(this.modelsArray[0])
+            // console.log(this.modelsArray[0])
             this.cubeSelect(false)
         }
-        // document.oncontextmenu = (event) => {
-        //     this.mouseVector.x = (event.clientX / window.innerWidth) * 2 - 1
-        //     this.mouseVector.y = -(event.clientY / window.innerHeight) * 2 + 1
-        //     // console.log("DZIAŁA")
-        //     this.cubeSelect(true)
-        // }
+        document.getElementById("root").oncontextmenu = (event) => {
+            this.mouseVector.x = (event.clientX / window.innerWidth) * 2 - 1
+            this.mouseVector.y = -(event.clientY / window.innerHeight) * 2 + 1
+            // console.log("DZIAŁA")
+            this.cubeSelect(true)
+        }
     }
 
     cubeSelect = (flag) => {
@@ -92,11 +123,19 @@ class Game {
                     this.cubeCheck(cubeInArray, xxIndex, yyIndex, zzIndex)
                 }
             }
-            // else {
-            //     cubeInArray.flagged = true
-            //     cubeInArray.material.color.r = 0
-            //     cubeInArray.material.color.g = 1
-            // }
+            else {
+                if (cubeInArray.flagged == false || cubeInArray.flagged == undefined) {
+                    cubeInArray.flagged = true
+                    cubeInArray.material.color.r = 0
+                    cubeInArray.material.color.g = 1
+                } else {
+                    cubeInArray.flagged = false
+                    cubeInArray.material.color.r = 0.53
+                    cubeInArray.material.color.g = 0.53
+
+                }
+
+            }
 
         }
     }
@@ -109,6 +148,9 @@ class Game {
             this.lose()
         } else {
             if (cubeInArray.neighboringMines != 0) {
+                let number = this.modelsArray[cubeInArray.neighboringMines].clone()
+                this.scene.add(number)
+                number.position.set(cubeInArray.cube.position.x, cubeInArray.cube.position.y, cubeInArray.cube.position.z)
                 this.scene.remove(cubeInArray.cube)
                 cubeInArray.explored = true
                 console.log(cubeInArray)
@@ -118,6 +160,9 @@ class Game {
                         for (let k = zIndex - 1; k <= zIndex + 1; k++) {
                             if (this.mineFieldArray[i]?.[j]?.[k] != undefined) {
                                 if (this.mineFieldArray[i][j][k].neighboringMines != 0) {
+                                    let number = this.modelsArray[this.mineFieldArray[i][j][k].neighboringMines].clone()
+                                    this.scene.add(number)
+                                    number.position.set(this.mineFieldArray[i][j][k].cube.position.x, this.mineFieldArray[i][j][k].cube.position.y, this.mineFieldArray[i][j][k].cube.position.z)
                                     this.mineFieldArray[i][j][k].explored = true
                                     this.scene.remove(this.mineFieldArray[i][j][k].cube)
                                 } else {
@@ -140,11 +185,22 @@ class Game {
 
     }
     lose = () => {
-        alert("you lose")
+        this.mineFieldArray.forEach((x) => {
+            x.forEach((y) => {
+                y.forEach((z) => {
+                    if (z.isMine == true) {
+                        let mine = this.modelsArray[0].clone()
+                        this.scene.add(mine)
+                        mine.position.set(z.cube.position.x, z.cube.position.y, z.cube.position.z)
+                        // console.log(z.cube.position)
+                        this.scene.remove(z.cube)
+                    }
+                })
+            })
+        })
     }
 
     createMineField = () => {
-
         for (let x = 0; x < this.mineFieldLength; x++) {
             let mineFieldArrayRow1 = []
             for (let y = 0; y < this.mineFieldLength; y++) {
@@ -217,6 +273,8 @@ class Game {
                 let mineFieldArrayHelperRow2 = []
                 y.forEach((z, zIndex) => {
                     let simplifiedObject = {
+                        flagged: z.flagged,
+                        explored: z.explored,
                         neighboringMines: z.neighboringMines,
                         isMine: z.isMine,
                         x: xIndex,
