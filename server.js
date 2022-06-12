@@ -3,7 +3,7 @@ const Datastore = require('nedb')
 var express = require("express")
 var app = express()
 var path = require("path")
-const PORT = process.env.PORT | 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
@@ -26,7 +26,7 @@ let collection = new Datastore({
 let singleArray = []
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname + "/static/index.html"))
+    res.sendFile(path.resolve("static/index.html"))
 })
 
 // Dodawanie usera - kliknięcie przycisku loguj na stronie
