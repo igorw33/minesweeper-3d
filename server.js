@@ -101,7 +101,7 @@ app.post("/MOVE_CHECK", (req, res) => {
     }
     if (JSON.stringify(newMove) != JSON.stringify(lastChange)) {
         newMove = lastChange
-        res.send(JSON.stringify({ status: newMove, time: currentTime }))
+        res.send(JSON.stringify({ status: newMove2, time: currentTime }))
     } else if (JSON.stringify(newMove2) != JSON.stringify(lastChange)) {
         lastChange = newMove2
         newMove = newMove2
