@@ -224,7 +224,11 @@ class Game {
     }
 
     win = () => {
-        net.sendMove("Victory")
+        setTimeout(() => {
+            net.sendMove("Victory")
+        },
+            10)
+
     }
 
     lose = () => {
