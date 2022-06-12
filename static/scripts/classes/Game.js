@@ -4,6 +4,8 @@ class Game {
         this.mineFieldLength = 5
         this.mineCount = 5
         this.mineFieldArray = []
+        this.mineFieldArrayHelper = []
+        this.mineFieldArrayHelperSingle = []
 
         this.scene = new THREE.Scene()
         this.scene.background = this.backgroundTexture
@@ -25,6 +27,7 @@ class Game {
         this.raycasting()
 
         this.createMineField()
+        this.createMineFieldHelper()
 
         this.render()
         this.resize()
@@ -205,6 +208,29 @@ class Game {
         }
         // console.log(neighboringMines)
         return neighboringMines
+    }
+
+    createMineFieldHelper = () => {
+        this.mineFieldArray.forEach((x, xIndex) => {
+            let mineFieldArrayHelperRow1 = []
+            x.forEach((y, yIndex) => {
+                let mineFieldArrayHelperRow2 = []
+                y.forEach((z, zIndex) => {
+                    let simplifiedObject = {
+                        neighboringMines: z.neighboringMines,
+                        isMine: z.isMine,
+                        x: xIndex,
+                        y: yIndex,
+                        z: zIndex
+                    }
+                    this.mineFieldArrayHelperSingle.push(simplifiedObject)
+                    mineFieldArrayHelperRow2.push(simplifiedObject)
+                })
+                mineFieldArrayHelperRow1.push(mineFieldArrayHelperRow2)
+            })
+            this.mineFieldArrayHelper.push(mineFieldArrayHelperRow1)
+        })
+        console.log(this.mineFieldArrayHelper, this.mineFieldArrayHelperSingle)
     }
 
 
