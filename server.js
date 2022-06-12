@@ -1,4 +1,5 @@
-const { application } = require("express");
+const { application } = require("express")
+const Datastore = require('nedb')
 var express = require("express")
 var app = express()
 var path = require("path")
@@ -14,6 +15,11 @@ app.use(express.static('static'))
 let users = []
 let lastChange = {}
 let newMove = {}
+let startDate = Date.now()
+const collection = new Datastore({
+    filename: 'kolekcja.db',
+    autoload: true
+})
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname + "/static/index.html"))
@@ -54,6 +60,7 @@ app.post("/CHECK_USERS", (req, res) => {
     console.log("sprawdzam ilość userów...")
     console.log(users)
     if (users.length == 2) {
+        startDate = Date.now()
         // Koniec czekania, początek gry
         res.send(JSON.stringify("Koniec", null, 5))
     }
@@ -79,6 +86,31 @@ app.post("/MOVE_CHECK", (req, res) => {
     } else {
         res.send(null)
     }
+})
+
+// Wygrana
+
+app.post("/VICTORY", (req, res) => {
+    let info = req.body
+    let nick = info.nick
+    let time = (Date.now() - startDate) / 1000
+    const doc = {
+        nick: nick,
+        time: time
+    }
+    collection.insert(doc, function (err, newDoc) {
+        console.log("dodano dokument (obiekt):")
+        console.log(newDoc)
+        res.send(JSON.stringify(newDoc, null, 5))
+    })
+})
+
+// Zczytanie bazy rekordów
+
+app.post("/READ_RECORDS", (req, res) => {
+    collection.find({}, function (err, docs) {
+        res.send(JSON.stringify({ "docsy": docs }, null, 5))
+    })
 })
 
 app.listen(PORT, function () {
