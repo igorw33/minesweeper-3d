@@ -94,16 +94,21 @@ app.post("/NEW_MOVE", (req, res) => {
 // Sprawdzanie ostatniego ruchu, wykonuje się ciągle
 
 app.post("/MOVE_CHECK", (req, res) => {
+    let currentTime = (Date.now() - startDate) / 1000 + ""
+    currentTime = currentTime.slice(0, -2)
+    if (currentTime[currentTime.length - 1] == ".") {
+        currentTime = currentTime + "0"
+    }
     if (JSON.stringify(newMove) != JSON.stringify(lastChange)) {
         newMove = lastChange
-        res.send(JSON.stringify(newMove2))
+        res.send(JSON.stringify({ status: newMove2, time: currentTime }))
     } else if (JSON.stringify(newMove2) != JSON.stringify(lastChange)) {
         lastChange = newMove2
         newMove = newMove2
         console.log(lastChange)
-        res.send(JSON.stringify(lastChange))
+        res.send(JSON.stringify({ status: lastChange, time: currentTime }))
     } else {
-        res.send(JSON.stringify("Nothing new"))
+        res.send(JSON.stringify({ status: "Nothing new", time: currentTime }))
     }
 })
 

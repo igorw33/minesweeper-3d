@@ -12,7 +12,7 @@ class Net {
             .then(response => response.json())
             .then(data => {
                 if (data.users != undefined) {
-                    // ui.createLoadScr()
+                    ui.createLoadScr()
                     console.log(data)
                     if (data.which == 2) {
                         // Tu wywołaj funkcję, która wygeneruje planszę dla drugiego użytkownika
@@ -25,7 +25,7 @@ class Net {
                                 if (data == "Koniec") {
                                     clearInterval(sprawdzanie)
                                     net.moveCheck()
-                                    // ui.removeLoadScr()
+                                    ui.removeLoadScr()
                                 }
                             })
                             .catch(error => console.log(error))
@@ -58,20 +58,21 @@ class Net {
             fetch("/MOVE_CHECK", { method: "post" })
                 .then(response => response.json())
                 .then(data => {
-                    if (data != "Nothing new") {
+                    if (data.status != "Nothing new") {
                         console.log(data)
-                        if (data.moveInfo == "Victory") {
+                        if (data.status.moveInfo == "Victory") {
                             clearInterval(chk)
-                            // ui.writeVictory()
-                        } else if (data.moveInfo == "Defeat") {
+                            ui.writeVictory()
+                        } else if (data.status.moveInfo == "Defeat") {
                             clearInterval(chk)
-                            // ui.writeDefeat()
+                            ui.writeDefeat()
                         } else {
                             // Wywołaj funkcję, która updatuje planszę
                         }
                     } else {
                         // console.log(data)
                     }
+                    ui.updateCounter(data.time)
                 })
                 .catch(error => console.log(error))
         }, 100);
@@ -105,7 +106,7 @@ class Net {
         fetch("/READ_RECORDS", { method: "post" })
             .then(response => response.json())
             .then(data => {
-                // ui.writeRecords(data)
+                ui.writeRecords(data)
             })
             .catch(error => console.log(error))
     }

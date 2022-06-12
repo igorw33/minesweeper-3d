@@ -5,7 +5,7 @@ const loadWholeGame = () => {
     game = new Game()
     net = new Net()
     ui = new Ui()
-    // ui.getRecords()
+    ui.getRecords()
 }
 
 window.onresize = () => {
