@@ -22,6 +22,7 @@ let collection = new Datastore({
     filename: 'kolekcja.db',
     autoload: true
 })
+let singleArray = []
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname + "/static/index.html"))
@@ -39,8 +40,9 @@ app.post("/ADD_USER", (req, res) => {
     else {
         if (users.length == 0) {
             users.push(userInfo.userName)
+            singleArray = userInfo.minefield
             console.log(users)
-            res.send(JSON.stringify({ users }, null, 5));
+            res.send(JSON.stringify({ users, singleArray, which: 1 }, null, 5));
         }
         else if (users.length == 1) {
             if (users[0] == userInfo.userName) {
@@ -50,7 +52,7 @@ app.post("/ADD_USER", (req, res) => {
             else {
                 users.push(userInfo.userName)
                 console.log(users)
-                res.send(JSON.stringify({ users }, null, 5));
+                res.send(JSON.stringify({ users, singleArray, which: 2 }, null, 5));
             }
         }
     }
@@ -76,6 +78,7 @@ app.post("/CHECK_USERS", (req, res) => {
 
 app.post("/RESET", (req, res) => {
     users = []
+    singleArray = []
     res.send(JSON.stringify("Tablica została wyczyszczona", null, 5));
 })
 
