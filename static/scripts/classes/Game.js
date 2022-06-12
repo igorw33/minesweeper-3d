@@ -227,7 +227,7 @@ class Game {
         setTimeout(() => {
             net.sendMove("Victory")
         },
-            10)
+            100)
 
     }
 
