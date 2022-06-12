@@ -242,7 +242,10 @@ class Game {
                 })
             })
         })
-        net.sendMove("Defeat")
+        setTimeout(() => {
+            net.sendMove("Defeat")
+        }, 10)
+
     }
 
     createMineField = () => {
