@@ -2,7 +2,7 @@ class Game {
 
     constructor() {
         this.mineFieldLength = 7
-        this.mineCount = 10
+        this.mineCount = 25
         this.mineFieldArray = []
         this.mineFieldArrayHelper = []
         this.mineFieldArrayHelperSingle = []
