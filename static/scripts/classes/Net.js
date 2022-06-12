@@ -5,7 +5,7 @@ class Net {
     login(username) {
         let body = {
             userName: username,
-            minefield: game.mineFieldArrayHelperSingle
+            minefield: game.mineFieldArrayHelper
         }
         body = JSON.stringify(body)
         fetch("/ADD_USER", { method: "post", body })
