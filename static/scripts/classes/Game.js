@@ -1,11 +1,13 @@
 class Game {
 
     constructor() {
-        this.mineFieldLength = 5
+        this.mineFieldLength = 7
         this.mineCount = 10
         this.mineFieldArray = []
         this.mineFieldArrayHelper = []
         this.mineFieldArrayHelperSingle = []
+        this.explorationGoal = (this.mineFieldLength * this.mineFieldLength * this.mineFieldLength) - this.mineCount
+        console.log(this.explored)
 
         this.scene = new THREE.Scene()
         this.scene.background = this.backgroundTexture
@@ -24,11 +26,9 @@ class Game {
         this.controls.target.set(0, 0, 0)
 
 
-        this.raycasting()
+        this.generateForFirstPlayer()
 
-        // przesunąc do innej funkcji
-        this.createMineField()
-        this.createMineFieldHelper()
+        this.raycasting()
 
         this.render()
         this.resize()
@@ -75,7 +75,7 @@ class Game {
                     // console.log(mineModel, this.modelsArray[0])
                 })
             }
-            console.log(this.modelsArray)
+            //console.log(this.modelsArray)
         })
     }
 
@@ -120,19 +120,17 @@ class Game {
 
             if (flag == false) {
                 if (cubeInArray.flagged == false || cubeInArray.flagged == undefined) {
-                    this.cubeCheck(cubeInArray, xxIndex, yyIndex, zzIndex)
+                    // this.cubeCheck(cubeInArray, xxIndex, yyIndex, zzIndex)
+                    this.move(cubeInArray, xxIndex, yyIndex, zzIndex, 0)
+
                 }
             }
             else {
-                if (cubeInArray.flagged == false || cubeInArray.flagged == undefined) {
-                    cubeInArray.flagged = true
-                    cubeInArray.material.color.r = 0
-                    cubeInArray.material.color.g = 1
-                } else {
-                    cubeInArray.flagged = false
-                    cubeInArray.material.color.r = 0.53
-                    cubeInArray.material.color.g = 0.53
 
+                if (cubeInArray.flagged == false || cubeInArray.flagged == undefined) {
+                    this.move(cubeInArray, xxIndex, yyIndex, zzIndex, 1)
+                } else {
+                    this.move(cubeInArray, xxIndex, yyIndex, zzIndex, 2)
                 }
 
             }
@@ -142,6 +140,9 @@ class Game {
 
 
     cubeCheck = (cubeInArray, xIndex, yIndex, zIndex) => {
+        // console.log(cubeInArray, xIndex, yIndex, zIndex)
+
+        cubeInArray = this.mineFieldArray[xIndex][yIndex][zIndex]
         if (cubeInArray.isMine == true) {
             // console.log("BOOM")
             // this.scene.remove(cube)
@@ -153,7 +154,7 @@ class Game {
                 number.position.set(cubeInArray.cube.position.x, cubeInArray.cube.position.y, cubeInArray.cube.position.z)
                 this.scene.remove(cubeInArray.cube)
                 cubeInArray.explored = true
-                console.log(cubeInArray)
+                //console.log(cubeInArray)
             } else {
                 for (let i = xIndex - 1; i <= xIndex + 1; i++) {
                     for (let j = yIndex - 1; j <= yIndex + 1; j++) {
@@ -179,12 +180,55 @@ class Game {
                 }
             }
         }
+        let explored = 0
+        this.mineFieldArray.forEach((x) => {
+            x.forEach((y) => {
+                y.forEach((z) => {
+                    if (z.explored == true) {
+                        explored += 1
+                    }
+                })
+            })
+        })
+        if (explored == this.explorationGoal) {
+            this.win()
+        }
+    }
+
+    cubeFlag = (cubeInArray, xIndex, yIndex, zIndex) => {
+        cubeInArray = this.mineFieldArray[xIndex][yIndex][zIndex]
+        cubeInArray.flagged = true
+        cubeInArray.material.color.r = 0
+        cubeInArray.material.color.g = 1
+    }
+
+    cubeUnFlag = (cubeInArray, xIndex, yIndex, zIndex) => {
+        cubeInArray = this.mineFieldArray[xIndex][yIndex][zIndex]
+        cubeInArray.flagged = false
+        cubeInArray.material.color.r = 0.53
+        cubeInArray.material.color.g = 0.53
+    }
+
+
+
+    move = (cubeInArray, xxIndex, yyIndex, zzIndex, action) => {
+        let move = {
+            "cubeInArray": cubeInArray,
+            "xxIndex": xxIndex,
+            "yyIndex": yyIndex,
+            "zzIndex": zzIndex,
+            "action": action
+        }
+        console.log(move)
+        net.sendMove(move)
     }
 
     win = () => {
-
+        net.sendMove("Victory")
     }
+
     lose = () => {
+
         this.mineFieldArray.forEach((x) => {
             x.forEach((y) => {
                 y.forEach((z) => {
@@ -198,6 +242,7 @@ class Game {
                 })
             })
         })
+        net.sendMove("Defeat")
     }
 
     createMineField = () => {
@@ -222,7 +267,7 @@ class Game {
         for (let i = 0; i < this.mineCount; i++) {
             this.randomizeMine()
         }
-        console.log(this.mineFieldArray)
+        //console.log(this.mineFieldArray)
         this.scanForAll()
     }
 
@@ -234,7 +279,7 @@ class Game {
         // console.log(this.mineFieldArray[x][y][z].isMine)
         if (this.mineFieldArray[x][y][z].isMine == false) {
             this.mineFieldArray[x][y][z].isMine = true
-            this.mineFieldArray[x][y][z].material.color.r = 1
+            // this.mineFieldArray[x][y][z].material.color.r = 1
         } else {
             this.randomizeMine()
         }
@@ -248,7 +293,7 @@ class Game {
                 })
             })
         })
-        console.log(this.mineFieldArray)
+        //console.log(this.mineFieldArray)
     }
 
     scanNeighbours = (x, y, z) => {
@@ -288,9 +333,37 @@ class Game {
             })
             this.mineFieldArrayHelper.push(mineFieldArrayHelperRow1)
         })
-        console.log(this.mineFieldArrayHelper, this.mineFieldArrayHelperSingle)
+        //console.log(this.mineFieldArrayHelper, this.mineFieldArrayHelperSingle)
     }
 
+    generateForFirstPlayer = () => {
+        this.createMineField()
+        this.createMineFieldHelper()
+        console.log(this.mineFieldArray)
+    }
+
+    generateForSecondPlayer = (singleArray) => {
+        console.log(singleArray)
+        this.mineFieldArray.forEach((x, xIndex) => {
+            x.forEach((y, yIndex) => {
+                y.forEach((z, zIndex) => {
+                    this.scene.remove(z.cube)
+                })
+            })
+        })
+        singleArray.forEach((x, xIndex) => {
+            x.forEach((y, yIndex) => {
+                y.forEach((z, zIndex) => {
+                    let cube = new Cube(xIndex, yIndex, zIndex, this.mineFieldLength)
+                    this.mineFieldArray[xIndex][yIndex][zIndex] = cube
+                    this.mineFieldArray[xIndex][yIndex][zIndex].neighboringMines = z.neighboringMines
+                    this.mineFieldArray[xIndex][yIndex][zIndex].isMine = z.isMine
+                    this.scene.add(this.mineFieldArray[xIndex][yIndex][zIndex].returnCube())
+                })
+            })
+        })
+        console.log(this.mineFieldArray)
+    }
 
 
 

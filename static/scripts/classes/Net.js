@@ -14,8 +14,9 @@ class Net {
                 if (data.users != undefined) {
                     ui.createLoadScr()
                     console.log(data)
+
                     if (data.which == 2) {
-                        // Tu wywołaj funkcję, która wygeneruje planszę dla drugiego użytkownika
+                        game.generateForSecondPlayer(data.singleArray)
                     }
                     var sprawdzanie = setInterval(function () {
                         fetch("/CHECK_USERS", { method: "post" })
@@ -58,8 +59,10 @@ class Net {
             fetch("/MOVE_CHECK", { method: "post" })
                 .then(response => response.json())
                 .then(data => {
+
                     if (data.status != "Nothing new") {
                         console.log(data)
+
                         if (data.status.moveInfo == "Victory") {
                             clearInterval(chk)
                             ui.writeVictory()
@@ -67,7 +70,14 @@ class Net {
                             clearInterval(chk)
                             ui.writeDefeat()
                         } else {
-                            // Wywołaj funkcję, która updatuje planszę
+                            if (data.status.moveInfo.action == 0) {
+                                game.cubeCheck(data.status.moveInfo.cubeInArray, data.status.moveInfo.xxIndex, data.status.moveInfo.yyIndex, data.status.moveInfo.zzIndex)
+                            } else if (data.status.moveInfo.action == 1) {
+                                game.cubeFlag(data.status.moveInfo.cubeInArray, data.status.moveInfo.xxIndex, data.status.moveInfo.yyIndex, data.status.moveInfo.zzIndex)
+                            } else {
+                                game.cubeUnFlag(data.status.moveInfo.cubeInArray, data.status.moveInfo.xxIndex, data.status.moveInfo.yyIndex, data.status.moveInfo.zzIndex)
+                            }
+
                         }
                     } else {
                         // console.log(data)
