@@ -2,7 +2,7 @@ class Game {
 
     constructor() {
         this.mineFieldLength = 5
-        this.mineCount = 20
+        this.mineCount = 5
         this.mineFieldArray = []
 
         this.scene = new THREE.Scene()
@@ -54,16 +54,90 @@ class Game {
             this.mouseVector.x = (event.clientX / window.innerWidth) * 2 - 1
             this.mouseVector.y = -(event.clientY / window.innerHeight) * 2 + 1
             // console.log("DZIAŁA")
-            this.cubeSelect()
+            this.cubeSelect(false)
         }
+        // document.oncontextmenu = (event) => {
+        //     this.mouseVector.x = (event.clientX / window.innerWidth) * 2 - 1
+        //     this.mouseVector.y = -(event.clientY / window.innerHeight) * 2 + 1
+        //     // console.log("DZIAŁA")
+        //     this.cubeSelect(true)
+        // }
     }
 
-    cubeSelect = () => {
+    cubeSelect = (flag) => {
         this.raycaster.setFromCamera(this.mouseVector, this.camera)
         this.intersects = this.raycaster.intersectObjects(this.scene.children)
         if (this.intersects.length > 0) {
-            console.log(this.intersects[0].object)
+            let cubeInArray, xxIndex, yyIndex, zzIndex
+            // console.log(this.intersects[0].object)
+            this.mineFieldArray.forEach((x, xIndex) => {
+                x.forEach((y, yIndex) => {
+                    y.forEach((z, zIndex) => {
+                        // console.log(z.geometry.uuid, this.intersects[0].object.geometry.uuid)
+                        if (z.geometry.uuid == this.intersects[0].object.geometry.uuid) {
+                            cubeInArray = z
+                            xxIndex = xIndex
+                            yyIndex = yIndex
+                            zzIndex = zIndex
+                        }
+                    })
+                })
+            })
+
+            if (flag == false) {
+                if (cubeInArray.flagged == false || cubeInArray.flagged == undefined) {
+                    this.cubeCheck(cubeInArray, xxIndex, yyIndex, zzIndex)
+                }
+            }
+            // else {
+            //     cubeInArray.flagged = true
+            //     cubeInArray.material.color.r = 0
+            //     cubeInArray.material.color.g = 1
+            // }
+
         }
+    }
+
+
+    cubeCheck = (cubeInArray, xIndex, yIndex, zIndex) => {
+        if (cubeInArray.isMine == true) {
+            // console.log("BOOM")
+            // this.scene.remove(cube)
+            this.lose()
+        } else {
+            if (cubeInArray.neighboringMines != 0) {
+                this.scene.remove(cubeInArray.cube)
+                cubeInArray.explored = true
+                console.log(cubeInArray)
+            } else {
+                for (let i = xIndex - 1; i <= xIndex + 1; i++) {
+                    for (let j = yIndex - 1; j <= yIndex + 1; j++) {
+                        for (let k = zIndex - 1; k <= zIndex + 1; k++) {
+                            if (this.mineFieldArray[i]?.[j]?.[k] != undefined) {
+                                if (this.mineFieldArray[i][j][k].neighboringMines != 0) {
+                                    this.mineFieldArray[i][j][k].explored = true
+                                    this.scene.remove(this.mineFieldArray[i][j][k].cube)
+                                } else {
+                                    if (this.mineFieldArray[i][j][k].explored != true) {
+                                        this.mineFieldArray[i][j][k].explored = true
+                                        this.scene.remove(this.mineFieldArray[i][j][k].cube)
+                                        setTimeout(() => { this.cubeCheck(this.mineFieldArray[i][j][k], i, j, k) },
+                                            100)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    win = () => {
+
+    }
+    lose = () => {
+        alert("you lose")
     }
 
     createMineField = () => {
@@ -112,7 +186,6 @@ class Game {
             x.forEach((y, yIndex) => {
                 y.forEach((z, zIndex) => {
                     z.neighboringMines = this.scanNeighbours(xIndex, yIndex, zIndex)
-
                 })
             })
         })
